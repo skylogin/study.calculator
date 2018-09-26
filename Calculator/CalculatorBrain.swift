@@ -14,9 +14,11 @@ class CalculatorBrain{
     // 누산기
     private var accumulator = 0.0
     
+    private var internalProgram = [AnyObject]()
     
     func setoperand(operand: Double){
         accumulator = operand
+        internalProgram.append(operand as AnyObject)
     }
     
     
@@ -31,6 +33,8 @@ class CalculatorBrain{
         ,"+" : Operation.BinaryOperation({ $0 + $1 })
         ,"−" : Operation.BinaryOperation({ $0 - $1 })
         ,"=" : Operation.Equals
+        ,"AC" : Operation.AC
+        ,"RESET" : Operation.AC
     ]
     
     private enum Operation{
@@ -38,9 +42,12 @@ class CalculatorBrain{
         case UnaryOperation((Double) -> Double)
         case BinaryOperation((Double, Double) -> Double)
         case Equals
+        case AC
     }
    
     func performOperation(symbol: String){
+        internalProgram.append(symbol as AnyObject)
+        
         if let operation = operations[symbol] {
             switch operation{
             case .Constant(let value):
@@ -52,6 +59,8 @@ class CalculatorBrain{
                 pending = pendingBinaryoperationInfo(binaryFunction: function, firstOperand: accumulator)
             case .Equals:
                 executePendingBinaryOperation()
+            case .AC:
+                clear()
             }
         }
     }
@@ -70,6 +79,30 @@ class CalculatorBrain{
         var firstOperand: Double
     }
     
+    typealias PropertyList = AnyObject
+    var program: PropertyList {
+        get{
+            return internalProgram as CalculatorBrain.PropertyList
+        }
+        set{
+            clear()
+            if let arrayOfOps = newValue as? [AnyObject] {
+                for op in arrayOfOps{
+                    if let operand = op as? Double{
+                        setoperand(operand: operand)
+                    } else if let operation = op as? String{
+                        performOperation(symbol: operation)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func clear(){
+        accumulator = 0.0
+        pending = nil
+        internalProgram.removeAll()
+    }
     
     
     var result: Double{

@@ -101,6 +101,18 @@ class ViewController: UIViewController {
     }
     
     
+    var savedProgram: CalculatorBrain.PropertyList?
+    @IBAction func save() {
+        savedProgram = brain.program
+    }
+    
+    @IBAction func restore() {
+        if savedProgram != nil{
+            brain.program = savedProgram!
+            displayValue = brain.result
+        }
+    }
+    
     
     private var brain = CalculatorBrain()
     
@@ -117,6 +129,9 @@ class ViewController: UIViewController {
         if let mathematicalSymbol = sender.currentTitle{
             brain.performOperation(symbol: mathematicalSymbol)
             historyValue = mathematicalSymbol
+            if(mathematicalSymbol == "RESET"){
+                history.text = ""
+            }
         }
         displayValue = brain.result
     }
